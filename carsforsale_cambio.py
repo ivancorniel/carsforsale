@@ -1,53 +1,55 @@
 from bs4 import BeautifulSoup as soup
-from urllib.request import urlopen as uReq
+from urllib.request import urlopen
 from tkinter import *
 import webbrowser
 
+# setting the UI
 main = Tk()
-main.geometry("550x400")
-main.configure(bg="#313186")
-main.title("Cars")
-title = Label(main, text="Latest cars uploaded to Corotos.com.do",
-              font=('Arial', 12, "bold"), fg="white", bg="#313186")
-title.grid(row=0, column=0, columnspan=4)
+main.geometry("600x500")
+main.title("Carros en venta")
+title = Label(main, text="Carros de venta en Corotos.com.do", font=('Arial', 12, "bold"))
+title.grid(row=0, column=0, columnspan=2)
 
+#Add a line for each item
+def add_car_button(brand, price, link):
+    global row
+    link_button = Button(text="Open", command=lambda: navigate(link))
+    l_brand = Label(main, text=brand + price)
+    l_brand.grid(row=row, column=0)
+    link_button.grid(row=row, column=1)
+    row += 1
 
-my_url = 'https://www.corotos.com.do/sc/veh%C3%ADculos/carros'
-uClient = uReq(my_url)
-page_html = uClient.read()
-uClient.close()
-page_soup = soup(page_html, 'html.parser')
-
-
+#browse to the page of the specific car
 def navigate(link):
     webbrowser.get()
     webbrowser.open('corotos.com.do/' + link)
 
-
-links = []
-cars = page_soup.findAll("a", {"class": "listing__item"})
 row = 1
 
-#Puse esta nueva funcion que recibe los parametros necesarios para pintar el boton
-def add_car_button(brand, price, link):
-    global row
-    links.append(link)
-    hidden = Label(main, text=link, width=2, fg="#313186", bg="#313186")
-    link_button = Button(text="Open", command=lambda: navigate(link), padx=15)
-    l_brand = Label(main, text="Marca: " + brand, bg="#313186", fg="white")
-    l_price = Label(main, text="Precio: " + price, bg="#313186", fg="white")
+try:
+    page_html = urlopen('https://www.corotos.com.do/sc/veh%C3%ADculos/carros').read()  # getting the list of items
+    page_soup = soup(page_html, 'html.parser')  # parsing the list of items as HTML
+    cars = page_soup.findAll("div", {"class": "listing__item"})  # selecting all cars listed
+
+    #add a line for each car 
+    for car in cars:
+        brand = car.find("h3", {"class": "item__title"}).text  # get the brand/model of the car
+        price = car.find("a", {"class": "item__price"}).text  # get  the price of the car
+        link = car.find('a').get('href')  # get the link to the car selling page
+        add_car_button(brand, price, link)
+except:
+    #error message if not able to load the page info
+    l_brand = Label(main, text="Problemas cargando la información")
     l_brand.grid(row=row, column=0)
-    l_price.grid(row=row, column=1)
-    hidden.grid(row=row, column=2)
-    link_button.grid(row=row, column=3)
-    row += 1
+    
 
 
-for car in cars:
-    brand = car.find("h3", {"class": "item__title"}).text
-    price = car.find("h3", {"class": "item__price"}).text
-    link = car.attrs['href']
-    add_car_button(brand, price, link)
+
+
+
+
+
+
 
 
 main.mainloop()
