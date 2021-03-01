@@ -42,14 +42,4 @@ except:
     l_brand = Label(main, text="Problemas cargando la información")
     l_brand.grid(row=row, column=0)
     
-
-
-
-
-
-
-
-
-
-
 main.mainloop()
